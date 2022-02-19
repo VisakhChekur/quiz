@@ -1,0 +1,72 @@
+from tkinter import *
+
+THEME_COLOR = "#375362"
+
+
+class QuizInterface:
+
+    def __init__(self, quiz):
+        # Window
+        self.quiz = quiz
+        self.window = Tk()
+        self.window.title("Quizzler")
+        self.window.config(padx=20, pady=20, bg=THEME_COLOR)
+
+        # Label
+        self.score_label = Label(
+            text=f"Score: {self.quiz.score}", fg="white", bg=THEME_COLOR, font=(20))
+        self.score_label.grid(row=0, column=1, sticky=E)
+
+        # Canvas
+        self.canvas = Canvas(width=300, height=250, bg="white")
+        self.canvas.config(highlightthickness=0)
+        self.question_txt = self.canvas.create_text(
+            150,
+            125,
+            width=280,
+            text="",
+            font=("Arial", 15, "italic")
+        )
+        self.canvas.grid(row=1, column=0, columnspan=2, pady=50)
+
+        # Buttons
+        true_img = PhotoImage(file="images/true.png")
+        false_img = PhotoImage(file="images/false.png")
+        self.true_btn = Button(image=true_img, command=self.true)
+        self.true_btn.config(highlightthickness=0, bd=0)
+        self.true_btn.grid(row=2, column=0)
+        self.false_btn = Button(image=false_img, command=self.false)
+        self.false_btn.config(highlightthickness=0, bd=0)
+        self.false_btn.grid(row=2, column=1)
+        self.next_question()
+
+        self.window.mainloop()
+
+    def next_question(self):
+
+        if self.quiz.still_has_questions():
+            question = self.quiz.next_question()
+            self.canvas.itemconfig(self.question_txt, text=question)
+        else:
+            self.window.after(1000, self.game_finished)
+            self.true_btn.config(state="disabled")
+            self.false_btn.config(state="disabled")
+
+    def true(self):
+        self.give_feedback(self.quiz.check_answer("true"))
+
+    def false(self):
+        self.give_feedback(self.quiz.check_answer("false"))
+
+    def give_feedback(self, is_right):
+        if is_right:
+            self.canvas.itemconfig(
+                self.question_txt, text="Correct!")
+            self.score_label.config(text=f"Score: {self.quiz.score}")
+        else:
+            self.canvas.itemconfig(self.question_txt, text="Wrong...")
+        self.window.after(1000, self.next_question)
+
+    def game_finished(self):
+        self.canvas.itemconfig(
+            self.question_txt, text=f"Quiz finished! You final score was {self.quiz.score}/10!")
